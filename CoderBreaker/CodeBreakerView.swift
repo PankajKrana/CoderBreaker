@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  CodeBreakerView.swift
 //  CoderBreaker
 //
 //  Created by Pankaj Kumar Rana on 25/12/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct CodeBreakerView: View {
     var body: some View {
         VStack {
             pegs(colors: [.red, .green, .blue, .yellow])
@@ -36,5 +36,5 @@ struct ContentView: View {
 
 
 #Preview {
-    ContentView()
+    CodeBreakerView()
 }

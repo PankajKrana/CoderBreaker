@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CodeBreakerView: View {
-    @State var game = CodeBreaker()
+    @State var game = CodeBreaker(pegChoices: [.brown, .yellow, .orange, .black])
     
     var body: some View {
         VStack {
@@ -21,15 +21,19 @@ struct CodeBreakerView: View {
                 }
             }
             
-            Button("Guess") {
-                withAnimation {
-                    game.attemptGuess()
-                    
-                }
-            }
-            
         }
         .padding()
+    }
+    
+    var guessButton: some View {
+        Button("Guess") {
+            withAnimation {
+                game.attemptGuess()
+                
+            }
+        }
+        .font(.system(size: 80))
+        .minimumScaleFactor(0.1)
     }
     
     
@@ -38,6 +42,13 @@ struct CodeBreakerView: View {
         HStack {
             ForEach(code.pegs.indices, id: \.self) { index in
                 RoundedRectangle(cornerRadius: 10)
+                    .overlay {
+                        if code.pegs[index] == Code.missing {
+                            RoundedRectangle(cornerRadius: 10)
+                                .strokeBorder(Color.gray)
+                        }
+                    }
+                    .contentShape(Rectangle())
                     .aspectRatio(1, contentMode: .fit)
                     .foregroundStyle(code.pegs[index])
                     .onTapGesture {
@@ -48,7 +59,12 @@ struct CodeBreakerView: View {
                 
             }
             
-            MatchMarkerView(matches: [.exact, .inexact, .nomatch, .exact])
+            MatchMarkerView(matches: code.Matches)
+                .overlay {
+                    if code.kind == .guess {
+                        guessButton
+                    }
+                }
             
         }
     }

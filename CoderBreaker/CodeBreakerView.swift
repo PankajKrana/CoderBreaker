@@ -17,36 +17,29 @@ struct CodeBreakerView: View {
         VStack {
             view(for: game.masterCode)
             ScrollView {
-                view(for: game.guess)
                 
+                if !game.isOver{
+                    view(for: game.guess)
+                }
                 ForEach(game.attempts.indices.reversed(), id: \.self) { index in
                     view(for: game.attempts[index])
                 }
             }
-            pegChooser
+            PegChooser(choices: game.pegChoices) { peg in
+                game.setGuessPeg(peg, at: selection)
+                selection = (selection + 1) % game.masterCode.pegs.count
+            } 
             
         }
         .padding()
     }
     
-    var pegChooser: some View {
-        HStack {
-            ForEach(game.pegChoices, id: \.self) { peg in
-                Button {
-                    game.setGuessPeg(peg, at: selection)
-                    selection = (selection + 1) % game.masterCode.pegs.count
-                } label: {
-                    PegView(peg: peg)
-                }
-                
-            }
-        }
-    }
     
     var guessButton: some View {
         Button("Guess") {
             withAnimation {
                 game.attemptGuess()
+                selection = 0
                 
             }
         }
@@ -57,30 +50,12 @@ struct CodeBreakerView: View {
     
     func view(for code: Code) -> some View {
         HStack {
-            ForEach(code.pegs.indices, id: \.self) { index in
-                PegView(peg: code.pegs[index])
-                    .padding(Selection.border)
-                    .background(backgroundView(for: code, at: index))
-                    .onTapGesture {
-                        if code.kind == .guess {
-                            selection = index
-                        }
-                    }
-            }
+            CodeView(code: code, selection: $selection)
             Color.clear.aspectRatio(1, contentMode: .fit)
                 .overlay(sideOverlay(for: code))
         }
     }
     
-    private func backgroundView(for code: Code, at index: Int) -> some View {
-        Group {
-            if selection == index, code.kind == .guess {
-                Selection.shape.foregroundStyle(Selection.color)
-            } else {
-                Color.clear
-            }
-        }
-    }
     
     private func sideOverlay(for code: Code) -> some View {
         Group {
@@ -98,13 +73,6 @@ struct CodeBreakerView: View {
         static let scaleFactor = minimumFontSize / maximumFontSize
     }
     
-    struct Selection {
-        static let border: CGFloat = 5
-        static let cornerRadius: CGFloat = 10
-        static let color: Color = Color.gray(0.85)
-        static let shape = RoundedRectangle(cornerRadius: cornerRadius)
-        
-    }
 }
 
 

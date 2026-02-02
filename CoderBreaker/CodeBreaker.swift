@@ -13,7 +13,7 @@ struct CodeBreaker {
     var masterCode: Code = Code(kind: .master)
     var guess: Code = Code(kind: .guess)
     var attempts: [Code] = []
-    var pegChoices: [Peg] = [.red, .blue, .yellow, .green]
+    var pegChoices: [Peg]
     
     init(pegChoices: [Peg] = [.red, .green, .yellow, .blue]) {
         self.pegChoices = pegChoices
@@ -24,6 +24,12 @@ struct CodeBreaker {
         var attempt = guess
         attempt.kind = .attempts(guess.match(against: masterCode))
         attempts.append(attempt)
+        guess.reset()
+    }
+    
+    mutating func setGuessPeg(_ peg: Peg, at index: Int) {
+        guard guess.pegs.indices.contains(index) else { return }
+        guess.pegs[index] = peg
     }
     
     mutating func changeGuessPeg(at index : Int){
@@ -42,55 +48,6 @@ extension Peg {
     static let missing = Color.clear
 }
 
-struct Code {
-    var kind: Kind
-    var pegs: [Peg] = Array(repeating: Peg.missing, count: 4)
-    
-    static let missingPeg: Peg = .clear
-    
-    enum Kind: Equatable {
-        case master
-        case guess
-        case attempts([Match])
-        case unknown
-    }
-    
-    mutating func randomize(from pegChoises: [Peg]) {
-        for index in pegChoises.indices {
-            pegs[index] = pegChoises.randomElement() ?? Code.missingPeg
-        }
-    }
-    
-    var Matches: [Match]? {
-        switch kind {
-        case .attempts(let matches):
-            return matches
-        default: return nil
-        }
-    }
-    
-    func match(against otherCode: Code) -> [Match] {
-        var pegsToMatch = otherCode.pegs
-        let backwardsExactMatches = pegs.indices.reversed().map { index in
-            if pegsToMatch.count > index, pegsToMatch[index] == pegs[index] {
-                return Match.exact
-            } else {
-                return .nomatch
-            }
-            
-        }
-        let exactMatches = Array(backwardsExactMatches.reversed())
-        
-        return pegs.indices.map { index in
-            if exactMatches[index] != .exact,  let matchIndex = pegsToMatch.firstIndex(of: pegs[index]) {
-                pegsToMatch.remove(at: matchIndex)
-                return .inexact
-            } else {
-                return exactMatches[index]
-            }
-        }
-        
-    }
-}
+
 
 

@@ -1,3 +1,11 @@
+//
+//  Code.swift
+//  CoderBreaker
+//
+//  Created by Pankaj Kumar Rana on 02/02/26.
+//
+
+
 import SwiftUI
 
 struct Code {
@@ -14,9 +22,13 @@ struct Code {
     }
     
     mutating func randomize(from pegChoises: [Peg]) {
-        for index in pegChoises.indices {
+        for index in pegs.indices {
             pegs[index] = pegChoises.randomElement() ?? Code.missingPeg
         }
+    }
+    
+    mutating func reset() {
+        pegs = Array(repeating: Code.missingPeg, count: 4)
     }
     
     var Matches: [Match]? {

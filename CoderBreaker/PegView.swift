@@ -8,11 +8,29 @@
 import SwiftUI
 
 struct PegView: View {
+    // MARK: Data In
+    let peg: Peg
+    
+    // MARK: - Body
+    
+    let pegShape = Circle()
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        pegShape
+            .overlay {
+                if peg == Code.missingPeg {
+                    pegShape
+                        .strokeBorder(Color.gray)
+                }
+            }
+            .contentShape(Rectangle())
+            .aspectRatio(1, contentMode: .fit)
+            .foregroundStyle(peg)
+        
     }
 }
 
 #Preview {
-    PegView()
+    PegView(peg: .blue)
+        .padding()
 }

@@ -32,6 +32,8 @@ struct Code {
         for index in pegs.indices {
             pegs[index] = pegChoises.randomElement() ?? Code.missingPeg
         }
+        print(self)
+
     }
     
     mutating func reset() {

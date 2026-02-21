@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct CodeBreakerView: View {
+    
     // MARK: Data Owned by Me
     @State private var game = CodeBreaker(pegChoices: [.brown, .yellow, .orange, .black])
     @State private var selection: Int = 0
@@ -15,14 +16,17 @@ struct CodeBreakerView: View {
     // MARK: - Body
     var body: some View {
         VStack {
-            view(for: game.masterCode)
+            CodeView(code: game.masterCode)
             ScrollView {
-                
                 if !game.isOver{
-                    view(for: game.guess)
+                    CodeView(code: game.guess, selection: $selection) { guessButton }
                 }
                 ForEach(game.attempts.indices.reversed(), id: \.self) { index in
-                    view(for: game.attempts[index])
+                    CodeView(code: game.attempts[index]) {
+                        if let matches = game.attempts[index].Matches {
+                            MatchMarkerView(matches: matches)
+                        }
+                    }
                 }
             }
             PegChooser(choices: game.pegChoices) { peg in
@@ -45,26 +49,6 @@ struct CodeBreakerView: View {
         }
         .font(.system(size: GuessButton.maximumFontSize))
         .minimumScaleFactor(GuessButton.scaleFactor)
-    }
-    
-    
-    func view(for code: Code) -> some View {
-        HStack {
-            CodeView(code: code, selection: $selection)
-            Color.clear.aspectRatio(1, contentMode: .fit)
-                .overlay(sideOverlay(for: code))
-        }
-    }
-    
-    
-    private func sideOverlay(for code: Code) -> some View {
-        Group {
-            if let matches = code.Matches {
-                MatchMarkerView(matches: matches)
-            } else if code.kind == .guess {
-                guessButton
-            }
-        }
     }
     
     struct GuessButton {

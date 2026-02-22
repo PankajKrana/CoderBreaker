@@ -18,24 +18,20 @@ struct CodeBreakerView: View {
     // MARK: - Body
     var body: some View {
         VStack {
-            Button("Restart", systemImage: "arrow.circlepath") {
-                withAnimation(.restart) {
-                    restarting = true
-                } completion: {
-                    withAnimation(.restart) {
-                        game.restart()
-                        selection = 0
-                    }
-                    
-                }
-            }
+            Button("Restart", systemImage: "arrow.circlepath") { restart() }
             
-            CodeView(code: game.masterCode)
+            CodeView(code: game.masterCode) {
+                ElapsedTime(startTime: game.startTime, endTime: game.endTime)
+                    .font(.title3)
+                    .monospaced()
+                    .lineLimit(1)
+                    
+            }
             ScrollView {
-                if !game.isOver || restarting {
+                if !game.isOver   {
                     CodeView(code: game.guess, selection: $selection) { guessButton }
-                         .animation(nil, value: game.attempts.count)
-                         .opacity(restarting ? 0 : 1)
+                        .animation(nil, value: game.attempts.count)
+                        .opacity(restarting ? 0 : 1)
                 }
                 ForEach(game.attempts.indices.reversed(), id: \.self) { index in
                     CodeView(code: game.attempts[index]) {
@@ -56,10 +52,26 @@ struct CodeBreakerView: View {
     }
     
     func changedPegAtSelection(to peg: Peg) {
-            game.setGuessPeg(peg, at: selection)
-            selection = (selection + 1) % game.masterCode.pegs.count
+        game.setGuessPeg(peg, at: selection)
+        selection = (selection + 1) % game.masterCode.pegs.count
     }
     
+    func restart() {
+        withAnimation(.restart) {
+            restarting = game.isOver
+            game.restart()
+            selection = 0
+
+            
+        } completion: {
+            withAnimation(.restart) {
+                restarting = false
+            }
+            
+        }
+        
+        
+    }
     
     var guessButton: some View {
         Button("Guess") {

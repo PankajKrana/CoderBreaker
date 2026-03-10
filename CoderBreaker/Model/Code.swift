@@ -14,7 +14,7 @@ struct Code {
     
     static let missingPeg: Peg = .clear
     
-    enum Kind: Equatable {
+    enum Kind: Hashable ,Equatable {
         case master(Bool)
         case guess
         case attempts([Match])

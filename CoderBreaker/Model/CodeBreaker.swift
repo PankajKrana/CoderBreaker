@@ -9,7 +9,9 @@ import SwiftUI
 
 typealias Peg = Color
 
-struct CodeBreaker {
+@Observable class CodeBreaker {
+    
+    var name: String
     var masterCode: Code = Code(kind: .master(true))
     var guess: Code = Code(kind: .guess)
     var attempts: [Code] = []
@@ -17,16 +19,17 @@ struct CodeBreaker {
     var startTime: Date = Date.now
     var endTime: Date?
     
-    init(pegChoices: [Peg] = [.red, .green, .yellow, .blue]) {
+    init(name: String = "Code Breaker", pegChoices: [Peg] = [.red, .green, .yellow, .blue]) {
+        self.name = name
         self.pegChoices = pegChoices
         masterCode.randomize(from: pegChoices)
     }
     
     var isOver: Bool {
-        attempts.last?.pegs == masterCode.pegs
+        attempts.first?.pegs == masterCode.pegs
     }
     
-    mutating func restart() {
+    func restart() {
         masterCode.kind = .master(true)
         masterCode.randomize(from: pegChoices)
         guess.reset()
@@ -36,10 +39,10 @@ struct CodeBreaker {
     }
     
     
-    mutating func attemptGuess() {
+    func attemptGuess() {
         var attempt = guess
         attempt.kind = .attempts(guess.match(against: masterCode))
-        attempts.append(attempt)
+        attempts.insert(attempt, at: 0 )
         guess.reset()
         if isOver {
             masterCode.kind = .master(false)
@@ -47,12 +50,12 @@ struct CodeBreaker {
         }
     }
     
-    mutating func setGuessPeg(_ peg: Peg, at index: Int) {
+    func setGuessPeg(_ peg: Peg, at index: Int) {
         guard guess.pegs.indices.contains(index) else { return }
         guess.pegs[index] = peg
     }
     
-    mutating func changeGuessPeg(at index : Int){
+    func changeGuessPeg(at index : Int){
         let existingPeg = guess.pegs[index]
         if let indexOfExistingPegInPegChoisces = pegChoices.firstIndex(of: existingPeg){
             
@@ -62,6 +65,20 @@ struct CodeBreaker {
             guess.pegs[index] = pegChoices.first ?? Code.missingPeg
         }
     }
+}
+
+extension CodeBreaker: Identifiable, Hashable, Equatable {
+    
+    // MARK: Making CodeBreaker Equatable
+    static func == (lhs: CodeBreaker, rhs: CodeBreaker) -> Bool {
+        return lhs.id == rhs.id
+    }
+        
+    // MARK: Making CodeBreaker Hashable
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
 }
 
 extension Peg {

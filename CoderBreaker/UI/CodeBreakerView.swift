@@ -8,9 +8,13 @@
 import SwiftUI
 
 struct CodeBreakerView: View {
+    // MARK: Data in
+    @Environment(\.scenePhase) var scenePhase
+    
+    // MARK: Data Shared with me
+    let game: CodeBreaker
     
     // MARK: Data Owned by Me
-    let game: CodeBreaker
     @State private var selection: Int = 0
     @State private var restarting: Bool = false
     @State private var hideMostRecentMarkers: Bool = false
@@ -41,13 +45,14 @@ struct CodeBreakerView: View {
                     .frame(maxHeight: 90)
             }
         }
+        .trackElapsedTime(in: game)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button("Restart", systemImage: "arrow.circlepath", action: restart)
                 
             }
             ToolbarItem {
-                ElapsedTime(startTime: game.startTime, endTime: game.endTime)
+                ElapsedTime(startTime: game.startTime, endTime: game.endTime, elapsedTime: game.elapsedTime)
                     .monospaced()
                     .lineLimit(1)
                 
@@ -66,13 +71,13 @@ struct CodeBreakerView: View {
             restarting = game.isOver
             game.restart()
             selection = 0
-
+            
         } completion: {
             withAnimation(.restart) {
                 restarting = false
             }
         }
-  
+        
     }
     
     var guessButton: some View {
@@ -97,6 +102,40 @@ struct CodeBreakerView: View {
         static let scaleFactor = minimumFontSize / maximumFontSize
     }
     
+}
+
+extension View {
+    func trackElapsedTime(in game: CodeBreaker) -> some View {
+        self
+        .modifier(ElapsedTimeTracker(game: game))
+    }
+}
+
+struct ElapsedTimeTracker: ViewModifier {
+    @Environment(\.scenePhase) var scenePhase
+    let game: CodeBreaker
+    
+    func body(content: Content) -> some View {
+        content
+            .onAppear {
+                game.startTimer()
+            }
+            .onDisappear {
+                game.pauseTimer()
+            }
+            .onChange(of: game) { oldGame, newGame in
+                oldGame.pauseTimer()
+                newGame.startTimer()
+            }
+            .onChange(of: scenePhase) {
+                switch scenePhase {
+                case .active: game.startTimer()
+                case .background: game.pauseTimer()
+                default: break
+                }
+            }
+        
+    }
 }
 
 #Preview {

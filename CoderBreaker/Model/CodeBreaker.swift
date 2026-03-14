@@ -16,13 +16,27 @@ typealias Peg = Color
     var guess: Code = Code(kind: .guess)
     var attempts: [Code] = []
     var pegChoices: [Peg]
-    var startTime: Date = Date.now
+    var startTime: Date?
     var endTime: Date?
+    var elapsedTime: TimeInterval = 0
     
     init(name: String = "Code Breaker", pegChoices: [Peg] = [.red, .green, .yellow, .blue]) {
         self.name = name
         self.pegChoices = pegChoices
         masterCode.randomize(from: pegChoices)
+    }
+    
+    func startTimer() {
+        if startTime == nil, !isOver {
+            startTime = .now
+        }
+    }
+    
+    func pauseTimer() {
+        if let startTime {
+            elapsedTime += Date.now.timeIntervalSince(startTime)
+        }
+        startTime = nil
     }
     
     var isOver: Bool {
@@ -45,8 +59,9 @@ typealias Peg = Color
         attempts.insert(attempt, at: 0 )
         guess.reset()
         if isOver {
-            masterCode.kind = .master(false)
             endTime = .now
+            masterCode.kind = .master(false)
+            pauseTimer()
         }
     }
     
@@ -73,12 +88,12 @@ extension CodeBreaker: Identifiable, Hashable, Equatable {
     static func == (lhs: CodeBreaker, rhs: CodeBreaker) -> Bool {
         return lhs.id == rhs.id
     }
-        
+    
     // MARK: Making CodeBreaker Hashable
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
-
+    
 }
 
 extension Peg {

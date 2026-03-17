@@ -5,22 +5,23 @@
 //  Created by Pankaj Kumar Rana on 20/01/26.
 //
 
-import SwiftUI
+import Foundation
+import SwiftData
 
-typealias Peg = Color
+typealias Peg = String
 
-@Observable class CodeBreaker {
+@Model class CodeBreaker {
     
     var name: String
-    var masterCode: Code = Code(kind: .master(true))
-    var guess: Code = Code(kind: .guess)
-    var attempts: [Code] = []
+    @Relationship(deleteRule: .cascade) var masterCode: Code = Code(kind: .master(isHidden: true))
+    @Relationship(deleteRule: .cascade) var guess: Code = Code(kind: .guess)
+    @Relationship(deleteRule: .cascade) var attempts: [Code] = []
     var pegChoices: [Peg]
-    var startTime: Date?
+    @Transient var startTime: Date?
     var endTime: Date?
     var elapsedTime: TimeInterval = 0
     
-    init(name: String = "Code Breaker", pegChoices: [Peg] = [.red, .green, .yellow, .blue]) {
+    init(name: String = "Code Breaker", pegChoices: [Peg]) {
         self.name = name
         self.pegChoices = pegChoices
         masterCode.randomize(from: pegChoices)
@@ -44,7 +45,7 @@ typealias Peg = Color
     }
     
     func restart() {
-        masterCode.kind = .master(true)
+        masterCode.kind = .master(isHidden: true)
         masterCode.randomize(from: pegChoices)
         guess.reset()
         attempts.removeAll()
@@ -54,13 +55,16 @@ typealias Peg = Color
     
     
     func attemptGuess() {
-        var attempt = guess
-        attempt.kind = .attempts(guess.match(against: masterCode))
+        guard !attempts.contains(where: {$0.pegs == guess.pegs}) else { return }
+        let attempt = Code(
+            kind: .attempts(guess.match(against: masterCode)),
+            pegs: guess.pegs
+        )
         attempts.insert(attempt, at: 0 )
         guess.reset()
         if isOver {
             endTime = .now
-            masterCode.kind = .master(false)
+            masterCode.kind = .master(isHidden: false)
             pauseTimer()
         }
     }
@@ -80,24 +84,6 @@ typealias Peg = Color
             guess.pegs[index] = pegChoices.first ?? Code.missingPeg
         }
     }
-}
-
-extension CodeBreaker: Identifiable, Hashable, Equatable {
-    
-    // MARK: Making CodeBreaker Equatable
-    static func == (lhs: CodeBreaker, rhs: CodeBreaker) -> Bool {
-        return lhs.id == rhs.id
-    }
-    
-    // MARK: Making CodeBreaker Hashable
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-    
-}
-
-extension Peg {
-    static let missing = Color.clear
 }
 
 

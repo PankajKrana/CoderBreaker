@@ -37,12 +37,6 @@ struct MatchMarkerView: View {
     
 }
 
-enum Match {
-    case nomatch
-    case exact
-    case inexact
-}
-
 #Preview {
     MatchMarkerView(matches: [.exact, .inexact, .nomatch])
 }
